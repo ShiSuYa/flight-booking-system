@@ -11,10 +11,7 @@ import (
     "github.com/gin-gonic/gin"
 )
 
-func main() {
-    // ----------------------------
-    // Подключение к БД
-    // ----------------------------
+func main() {    
     db, err := repository.NewPostgresDB()
     if err != nil {
         log.Fatalf("failed to connect to DB: %v", err)
@@ -23,14 +20,8 @@ func main() {
     bookingRepo := repository.NewBookingRepository(db)
     bookingService := service.NewBookingService(bookingRepo)
 
-    // ----------------------------
-    // Handler (без gRPC и Circuit Breaker)
-    // ----------------------------
     bookingHandler := handler.NewBookingHandler(bookingService)
 
-    // ----------------------------
-    // Роуты
-    // ----------------------------
     router := gin.Default()
 
     router.POST("/bookings", bookingHandler.CreateBooking)
