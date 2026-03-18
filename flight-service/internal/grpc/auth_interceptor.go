@@ -10,7 +10,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// AuthInterceptor проверяет API ключ для всех gRPC вызовов
 func AuthInterceptor() grpc.UnaryServerInterceptor {
 
 	apiKey := os.Getenv("FLIGHT_API_KEY")
@@ -22,13 +21,11 @@ func AuthInterceptor() grpc.UnaryServerInterceptor {
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
 
-		// получаем metadata
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			return nil, status.Error(codes.Unauthenticated, "missing metadata")
 		}
 
-		// получаем ключ
 		keys := md.Get("x-api-key")
 		if len(keys) == 0 {
 			return nil, status.Error(codes.Unauthenticated, "missing api key")
@@ -38,7 +35,6 @@ func AuthInterceptor() grpc.UnaryServerInterceptor {
 			return nil, status.Error(codes.Unauthenticated, "invalid api key")
 		}
 
-		// если всё ок — выполняем метод
 		return handler(ctx, req)
 	}
 }
