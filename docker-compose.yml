@@ -1,0 +1,109 @@
+services:
+
+  flight-db:
+    image: postgres:15
+    container_name: flight-db
+    environment:
+      POSTGRES_DB: flightdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - flight_db_data:/var/lib/postgresql/data
+
+  booking-db:
+    image: postgres:15
+    container_name: booking-db
+    environment:
+      POSTGRES_DB: bookingdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - booking_db_data:/var/lib/postgresql/data
+
+  flyway-flight:
+    image: flyway/flyway
+    container_name: flyway-flight
+    command: -url=jdbc:postgresql://flight-db:5432/flightdb -user=postgres -password=postgres migrate
+    volumes:
+      - ./flight-service/migrations:/flyway/sql
+    depends_on:
+      - flight-db
+
+  flyway-booking:
+    image: flyway/flyway
+    container_name: flyway-booking
+    command: -url=jdbc:postgresql://booking-db:5432/bookingdb -user=postgres -password=postgres migrate
+    volumes:
+      - ./booking-service/migrations:/flyway/sql
+    depends_on:
+      - booking-db
+
+  flight-service:
+    build:
+      context: ./flight-service
+    container_name: flight-service
+    environment:
+      - FLIGHT_API_KEY=supersecretkey123
+      - REDIS_ADDR=redis-master:6379
+      - FLIGHT_DB_HOST=flight-db
+      - FLIGHT_DB_PORT=5432
+      - FLIGHT_DB_USER=postgres
+      - FLIGHT_DB_PASSWORD=postgres
+      - FLIGHT_DB_NAME=flightdb
+    ports:
+      - "50051:50051"
+    depends_on:
+      - flight-db
+      - redis-master
+
+  booking-service:
+    build:
+      context: ./booking-service
+    container_name: booking-service
+    environment:
+      - BOOKING_DB_HOST=booking-db
+      - BOOKING_DB_PORT=5432
+      - BOOKING_DB_USER=postgres
+      - BOOKING_DB_PASSWORD=postgres
+      - BOOKING_DB_NAME=bookingdb
+      - FLIGHT_SERVICE_HOST=flight-service
+      - FLIGHT_SERVICE_PORT=50051
+      - FLIGHT_SERVICE_API_KEY=supersecretkey123
+    ports:
+      - "8080:8080"
+    depends_on:
+      - booking-db
+      - flight-service
+
+  redis-master:
+    image: redis:7
+    container_name: redis-master
+    ports:
+      - "6379:6379"
+
+  redis-replica:
+    image: redis:7
+    container_name: redis-replica
+    depends_on:
+      - redis-master
+    command: redis-server --replicaof redis-master 6379
+
+  redis-sentinel:
+    image: redis:7
+    container_name: redis-sentinel
+    depends_on:
+      - redis-master
+      - redis-replica
+    volumes:
+      - ./docker/redis/sentintel.conf:/etc/redis/sentintel.conf
+    command: ["redis-sentinel", "/etc/redis/sentintel.conf"]
+    ports:
+      - "26379:26379"
+    
+volumes:
+  flight_db_data:
+  booking_db_data:
