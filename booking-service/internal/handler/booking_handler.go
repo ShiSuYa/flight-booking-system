@@ -16,7 +16,6 @@ func NewBookingHandler(s *service.BookingService) *BookingHandler {
     return &BookingHandler{service: s}
 }
 
-// Создание бронирования
 func (h *BookingHandler) CreateBooking(c *gin.Context) {
     type request struct {
         FlightID       int64  `json:"flight_id"`
