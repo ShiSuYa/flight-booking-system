@@ -25,13 +25,10 @@ func (s *BookingService) CreateBooking(
     email string,
 ) error {
 
-    // 🔥 1. создаём gRPC клиент
     client := grpcclient.NewFlightClient()
 
-    // 🔥 2. добавляем API key
     grpcCtx := grpcclient.WithAPIKey(ctx)
 
-    // 🔥 3. ВАЖНО — вызываем Flight Service
     _, err := client.GetFlight(grpcCtx, &flightpb.GetFlightRequest{
         Id: int32(flightID),
     })
@@ -40,6 +37,5 @@ func (s *BookingService) CreateBooking(
         return fmt.Errorf("flight service unavailable: %w", err)
     }
 
-    // 🔥 4. если всё ок — создаём бронь
     return s.repo.CreateBooking(ctx, flightID, seats, name, email)
 }
