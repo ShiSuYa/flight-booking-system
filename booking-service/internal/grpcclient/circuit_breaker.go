@@ -66,7 +66,6 @@ func (cb *CircuitBreaker) UnaryClientInterceptor() grpc.UnaryClientInterceptor {
 			log.Println("CircuitBreaker: HALF_OPEN request")
 
 		case CLOSED:
-			// нормальная работа
 		}
 
 		cb.mu.Unlock()
@@ -90,7 +89,6 @@ func (cb *CircuitBreaker) UnaryClientInterceptor() grpc.UnaryClientInterceptor {
 			return err
 		}
 
-		// успех
 		if cb.state == HALF_OPEN {
 			log.Println("CircuitBreaker: HALF_OPEN → CLOSED")
 			cb.state = CLOSED
