@@ -32,6 +32,7 @@ func NewCircuitBreaker(maxFailures int, openTimeout time.Duration) *CircuitBreak
  }
 }
 
+<<<<<<< HEAD
 func (cb *CircuitBreaker) AllowRequest() bool {
  if cb.state == "open" {
   if time.Since(cb.lastAttempt) > cb.openTimeout {
@@ -57,11 +58,21 @@ func (cb *CircuitBreaker) Failure() {
   cb.state = "open"
  }
 }
+=======
+    client := grpcclient.NewFlightClient()
+
+    grpcCtx := grpcclient.WithAPIKey(ctx)
+
+    _, err := client.GetFlight(grpcCtx, &flightpb.GetFlightRequest{
+        Id: int32(flightID),
+    })
+>>>>>>> 8452adb4359383d879d3d21f6042281776274bd0
 
 func NewBookingService(r *repository.BookingRepository, fc flightpb.FlightServiceClient) *BookingService {
  return &BookingService{repo: r, flightClient: fc}
 }
 
+<<<<<<< HEAD
 func (s *BookingService) CreateBooking(ctx context.Context, flightID int64, seats int32, name, email string, totalPrice float64, status string, cb *CircuitBreaker) error {
 
  if !cb.AllowRequest() {
@@ -102,3 +113,7 @@ func (s *BookingService) GetAllBookings(ctx context.Context) ([]repository.Booki
 func (s *BookingService) GetBookingByID(ctx context.Context, id int64) (*repository.Booking, error) {
  return s.repo.GetBookingByID(ctx, id)
 }
+=======
+    return s.repo.CreateBooking(ctx, flightID, seats, name, email)
+}
+>>>>>>> 8452adb4359383d879d3d21f6042281776274bd0

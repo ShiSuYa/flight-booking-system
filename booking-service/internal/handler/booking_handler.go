@@ -54,6 +54,7 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
  c.JSON(http.StatusOK, gin.H{"status": "booking created"})
 }
 
+<<<<<<< HEAD
 func (h *BookingHandler) CancelBooking(c *gin.Context) {
  type request struct {
   BookingID int64 json:"booking_id"
@@ -103,3 +104,9 @@ func (h *BookingHandler) GetBookingByID(c *gin.Context) {
 
  c.JSON(http.StatusOK, booking)
 }
+=======
+    c.JSON(http.StatusOK, gin.H{
+        "status": "booking created",
+    })
+}
+>>>>>>> 8452adb4359383d879d3d21f6042281776274bd0

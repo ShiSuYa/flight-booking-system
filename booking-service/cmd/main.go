@@ -19,11 +19,13 @@ func main() {
   log.Fatalf("failed to connect to DB: %v", err)
  }
 
+
  bookingRepo := repository.NewBookingRepository(db)
 
  flightClient := grpcclient.NewFlightClient()
 
  bookingService := service.NewBookingService(bookingRepo, flightClient)
+
 
  bookingHandler := handler.NewBookingHandler(bookingService)
 
