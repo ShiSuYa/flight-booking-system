@@ -1,44 +1,47 @@
 package main
 
 import (
-    "log"
-    "net/http"
+ "log"
+ "net/http"
+ "time"
 
-    "booking-service/internal/handler"
-    "booking-service/internal/repository"
-    "booking-service/internal/service"
+ "booking-service/internal/handler"
+ "booking-service/internal/repository"
+ "booking-service/internal/service"
+ "booking-service/internal/grpcclient"
 
-    "github.com/gin-gonic/gin"
+ "github.com/gin-gonic/gin"
 )
 
 func main() {
-    // ----------------------------
-    // Подключение к БД
-    // ----------------------------
-    db, err := repository.NewPostgresDB()
-    if err != nil {
-        log.Fatalf("failed to connect to DB: %v", err)
-    }
+ db, err := repository.NewPostgresDB()
+ if err != nil {
+  log.Fatalf("failed to connect to DB: %v", err)
+ }
 
-    bookingRepo := repository.NewBookingRepository(db)
-    bookingService := service.NewBookingService(bookingRepo)
+ bookingRepo := repository.NewBookingRepository(db)
 
-    // ----------------------------
-    // Handler (без gRPC и Circuit Breaker)
-    // ----------------------------
-    bookingHandler := handler.NewBookingHandler(bookingService)
+ flightClient := grpcclient.NewFlightClient()
 
-    // ----------------------------
-    // Роуты
-    // ----------------------------
-    router := gin.Default()
+ bookingService := service.NewBookingService(bookingRepo, flightClient)
 
-    router.POST("/bookings", bookingHandler.CreateBooking)
-    router.POST("/bookings/cancel", bookingHandler.CancelBooking)
+ bookingHandler := handler.NewBookingHandler(bookingService)
 
-    log.Println("Booking Service started on port 8080")
+ router := gin.Default()
+ router.POST("/bookings", bookingHandler.CreateBooking)
+ router.POST("/bookings/cancel", bookingHandler.CancelBooking)
+ router.GET("/bookings", bookingHandler.GetAllBookings)
+ router.GET("/bookings/:id", bookingHandler.GetBookingByID)
 
-    if err := http.ListenAndServe(":8080", router); err != nil {
-        log.Fatalf("failed to start server: %v", err)
-    }
+ srv := &http.Server{
+  Addr:         ":8080",
+  Handler:      router,
+  ReadTimeout:  10 * time.Second,
+  WriteTimeout: 10 * time.Second,
+ }
+
+ log.Println("Booking Service started on port 8080")
+ if err := srv.ListenAndServe(); err != nil {
+  log.Fatalf("failed to start server: %v", err)
+ }
 }

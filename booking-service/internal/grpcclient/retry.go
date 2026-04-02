@@ -8,7 +8,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// Retry выполняет gRPC вызов с retry и exponential backoff
 func Retry(ctx context.Context, operation func() error) error {
 
 	backoffs := []time.Duration{
@@ -40,11 +39,9 @@ func Retry(ctx context.Context, operation func() error) error {
 		switch st.Code() {
 
 		case codes.Unavailable, codes.DeadlineExceeded:
-			// retry
 			continue
 
 		default:
-			// другие ошибки не ретраим
 			return err
 		}
 	}

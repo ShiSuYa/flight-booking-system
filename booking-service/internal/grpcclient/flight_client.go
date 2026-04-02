@@ -12,7 +12,6 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-// NewFlightClient создаёт gRPC клиент для Flight Service
 func NewFlightClient() flightpb.FlightServiceClient {
 
 	cb := NewCircuitBreaker()
@@ -29,7 +28,6 @@ func NewFlightClient() flightpb.FlightServiceClient {
 	return flightpb.NewFlightServiceClient(conn)
 }
 
-// WithAPIKey возвращает новый context с API Key для межсервисных вызовов
 func WithAPIKey(ctx context.Context) context.Context {
 	apiKey := os.Getenv("FLIGHT_SERVICE_API_KEY")
 
